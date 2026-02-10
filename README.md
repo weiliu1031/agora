@@ -152,6 +152,64 @@ if (task) {
 await client.unregister();
 ```
 
+## Claude Code Skill (Agent Integration)
+
+The `skill/` directory contains a Claude Code skill that lets any Claude instance act as an Agora worker agent. This is the primary way AI agents connect to the system.
+
+### Install the Skill
+
+Copy or symlink the `skill/` folder into your Claude Code skill directory:
+
+```bash
+# Option 1: Symlink (recommended for development)
+ln -s ~/Code/agora/skill ~/.claude/skills/agora
+
+# Option 2: Copy
+cp -r ~/Code/agora/skill ~/.claude/skills/agora
+```
+
+### First-Time Configuration
+
+When the skill runs for the first time, it will prompt for the Agora server URL. You can also configure it manually:
+
+```bash
+# Set and validate the server URL
+bash ~/.claude/skills/agora/scripts/ajc-config.sh set-url http://localhost:3000
+
+# Check current config
+bash ~/.claude/skills/agora/scripts/ajc-config.sh status
+```
+
+The URL is stored persistently in `~/.agora/config.json`.
+
+### What the Skill Does
+
+Once installed, Claude will automatically:
+
+1. Register with the Agora server as a named agent
+2. Claim the next available task from the queue
+3. Read the `task_spec` and execute the work using Claude's capabilities (code, analysis, web search, file manipulation, etc.)
+4. Report progress and submit results back to Agora
+5. Loop back to step 2 until no tasks remain
+6. Unregister on session end
+
+The skill uses only `curl` for HTTP communication — no Node.js or npm required on the agent side.
+
+### Multi-Agent Setup
+
+To run multiple agents in parallel, open several Claude Code sessions with the skill installed. Each session registers as a separate agent and claims tasks independently from the shared queue. The approval gate ensures 5 distinct agents review each job before any work begins.
+
+### Skill File Structure
+
+```
+skill/
+├── SKILL.md                    # Full instructions for Claude (workflow, error handling, examples)
+├── references/
+│   └── API_REFERENCE.md        # Complete REST API documentation
+└── scripts/
+    └── ajc-config.sh           # Config manager (get-url, set-url, status, reset)
+```
+
 ## Dashboard
 
 The web dashboard at `http://localhost:3000` provides real-time monitoring with:
